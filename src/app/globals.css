@@ -1,0 +1,53 @@
+/* src/app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-background: #ffffff;
+    --text-color: #111827;
+    --card-bg: #ffffff;
+    --border-color: #e5e7eb;
+    --hover-color: #f3f4f6;
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+  }
+
+  .dark {
+    --bg-background: #111827;
+    --text-color: #f3f4f6;
+    --card-bg: #1f2937;
+    --border-color: #374151;
+    --hover-color: #374151;
+    --primary-color: #93c5fd;
+    --primary-hover: #bfdbfe;
+  }
+}
+
+@layer utilities {
+  .bg-background {
+    background-color: var(--bg-background);
+  }
+  .text-color {
+    color: var(--text-color);
+  }
+  .card-bg {
+    background-color: var(--card-bg);
+  }
+  .border-color {
+    border-color: var(--border-color);
+  }
+  .hover-color {
+    background-color: var(--hover-color);
+  }
+  .primary-color {
+    color: var(--primary-color);
+  }
+  .primary-bg {
+    background-color: var(--primary-color);
+  }
+  .primary-hover {
+    background-color: var(--primary-hover);
+  }
+}

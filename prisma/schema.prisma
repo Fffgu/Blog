@@ -1,0 +1,79 @@
+// 这是你的Prisma模式文件
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型 - 存储博客作者信息
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  password      String
+  name          String?
+  bio           String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  posts         Post[]
+  accounts      Account[]
+  sessions      Session[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 文章模型 - 存储博客文章
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   // Markdown格式的文章内容
+  excerpt   String?  // 文章摘要（可选）
+  published Boolean  @default(false) // 是否发布
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// NextAuth.js需要的模型
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String  @db.VarChar(80)
+  providerAccountId String  @db.VarChar(80)
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @db.VarChar(200)
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  // 最终调整：确保联合索引总长度远低于1000字节限制
+  identifier String   @db.VarChar(45)    // 45字符
+  token      String   @unique @db.VarChar(150)  // 200字符
+  expires    DateTime
+
+  // (45 + 200) × 4字节 = 980字节，留有安全余量
+  @@unique([identifier, token])
+}
