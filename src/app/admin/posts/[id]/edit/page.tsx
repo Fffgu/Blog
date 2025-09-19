@@ -31,7 +31,7 @@ async function updatePost(
 
 export default async function EditPostPage({ params }: EditPostPageProps) {
   // 关键修复：等待 params 解析
-  const { id } = await params;
+  const { id } = params;
 
   const session = await getServerSession(authOptions);
 

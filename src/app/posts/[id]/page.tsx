@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
 
 // 定义页面参数类型
 interface PostPageProps {
@@ -10,13 +11,13 @@ interface PostPageProps {
 }
 
 export default async function PostPage({ params }: PostPageProps) {
-  // 关键修复：先await params再使用其属性
+  // 先await params再使用其属性
   const { id } = await params;
 
   // 从数据库获取文章数据
   const post = await prisma.post.findUnique({
     where: {
-      id: id, // 使用解构后的id
+      id: id,
     },
     include: {
       author: true,
@@ -66,12 +67,10 @@ export default async function PostPage({ params }: PostPageProps) {
         </div>
       </header>
 
-      {/* 文章内容 - 保持原始文本显示 */}
+      {/* 文章内容 - 使用Markdown渲染 */}
       <article className="bg-background rounded-lg shadow-md border border-color p-8">
         <div className="prose prose-lg max-w-none text-color">
-          <pre className="whitespace-pre-wrap leading-relaxed">
-            {post.content}
-          </pre>
+          <ReactMarkdown>{post.content}</ReactMarkdown>
         </div>
       </article>
     </>

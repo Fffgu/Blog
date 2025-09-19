@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useTheme } from "@/contexts/ThemeContext"; // 导入useTheme
+import { useTheme } from "@/contexts/ThemeContext";
 
 // 动态导入 MDEditor 以避免 SSR 问题
 const MDEditor = dynamic(
@@ -30,29 +30,13 @@ export default function PostEditor({
   onSave,
   isLoading = false,
 }: PostEditorProps) {
-  const { theme } = useTheme(); // 在组件内部调用useTheme
+  const { theme } = useTheme();
   const [title, setTitle] = useState(post?.title || "");
   const [content, setContent] = useState(post?.content || "");
   const [excerpt, setExcerpt] = useState(post?.excerpt || "");
   const [published, setPublished] = useState(post?.published || false);
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
-
-  // 自动生成摘要
-  const generateExcerpt = (content: string) => {
-    const plainText = content
-      .replace(/[#*`_~]/g, "") // 移除 Markdown 标记
-      .replace(/\n+/g, " ") // 替换换行为空格
-      .trim();
-    return plainText.slice(0, 150) + (plainText.length > 150 ? "..." : "");
-  };
-
-  // 当内容改变时自动更新摘要
-  useEffect(() => {
-    if (content && !excerpt) {
-      setExcerpt(generateExcerpt(content));
-    }
-  }, [content, excerpt]);
 
   const handleSave = async (shouldPublish?: boolean) => {
     if (!title.trim()) {
@@ -71,7 +55,7 @@ export default function PostEditor({
       await onSave({
         title: title.trim(),
         content: content.trim(),
-        excerpt: excerpt.trim() || generateExcerpt(content),
+        excerpt: excerpt.trim(), // 不再自动生成摘要
         published: shouldPublish !== undefined ? shouldPublish : published,
       });
     } catch (error) {
@@ -118,7 +102,7 @@ export default function PostEditor({
           id="excerpt"
           value={excerpt}
           onChange={(e) => setExcerpt(e.target.value)}
-          placeholder="请输入文章摘要（留空则自动生成）"
+          placeholder="请输入文章摘要"
           rows={3}
           className="bg-background w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-color resize-none"
         />
@@ -136,7 +120,7 @@ export default function PostEditor({
             onChange={(val) => setContent(val || "")}
             preview="edit"
             height={500}
-            data-color-mode={theme === "dark" ? "dark" : "light"} // 跟随主题切换
+            data-color-mode={theme === "dark" ? "dark" : "light"}
           />
         </div>
       </div>
