@@ -57,7 +57,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
         const errorData = await response.json();
         setError(errorData.error || "更新失败");
       }
-    } catch (error) {
+    } catch {
       setError("网络错误，请重试");
     } finally {
       setIsUpdatingProfile(false);
@@ -102,7 +102,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
         const errorData = await response.json();
         setError(errorData.error || "密码修改失败");
       }
-    } catch (error) {
+    } catch {
       setError("网络错误，请重试");
     } finally {
       setIsChangingPassword(false);

@@ -4,11 +4,12 @@ import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import PostEditor from "@/components/PostEditor";
 
-interface EditPostPageProps {
+// 直接定义参数类型，无需继承PageProps
+type EditPostPageProps = {
   params: {
     id: string;
   };
-}
+};
 
 async function updatePost(
   id: string,
@@ -29,8 +30,13 @@ async function updatePost(
   redirect("/admin/posts");
 }
 
+// 确保函数参数类型正确
 export default async function EditPostPage({ params }: EditPostPageProps) {
-  // 关键修复：等待 params 解析
+  // 增加参数验证，增强代码健壮性
+  if (!params || typeof params.id !== "string") {
+    notFound();
+  }
+
   const { id } = params;
 
   const session = await getServerSession(authOptions);
@@ -39,14 +45,10 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     redirect("/admin/login");
   }
 
-  // 获取文章数据（使用解析后的 id）
+  // 获取文章数据
   const post = await prisma.post.findUnique({
-    where: {
-      id: id,
-    },
-    include: {
-      author: true,
-    },
+    where: { id },
+    include: { author: true },
   });
 
   if (!post) {
@@ -60,7 +62,6 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     published: boolean;
   }) => {
     "use server";
-    // 使用解析后的 id
     await updatePost(id, postData);
   };
 
