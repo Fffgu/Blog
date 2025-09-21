@@ -5,14 +5,11 @@ import { ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import ThemeToggle from "@/components/ThemeToggle";
 
-// 注意：这里移除 Providers 导入，改为直接接收 children
-
 export default function RootLayoutClient({
   children,
 }: {
   children: ReactNode;
 }) {
-  // 现在 useSession 处于 SessionProvider 内部了
   const { data: session } = useSession();
 
   return (
@@ -25,34 +22,34 @@ export default function RootLayoutClient({
               肥古的博客
             </Link>
             <div className="flex items-center space-x-6">
+              {/* 始终显示首页链接 */}
               <Link
                 href="/"
                 className="text-color font-semibold hover:hover-color p-2 rounded transition-colors"
               >
                 首页
               </Link>
+
+              {/* 始终显示关于我链接 */}
               <Link
                 href="/about"
                 className="text-color font-semibold hover:hover-color p-2 rounded transition-colors"
               >
                 关于我
               </Link>
-              {session ? (
+
+              {/* 登录状态下显示管理文章链接 */}
+              {session && (
                 <Link
-                  href="/admin"
+                  href="/admin/posts"
                   className="text-color font-semibold hover:hover-color p-2 rounded transition-colors"
                 >
                   管理后台
                 </Link>
-              ) : (
-                <Link
-                  href="/login"
-                  className="text-color font-semibold hover:hover-color p-2 rounded transition-colors"
-                >
-                  登录
-                </Link>
               )}
-              {session && <ThemeToggle />}
+
+              {/* 无论登录状态都显示主题切换按钮 */}
+              <ThemeToggle />
             </div>
           </nav>
         </div>

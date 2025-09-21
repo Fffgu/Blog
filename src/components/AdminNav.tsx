@@ -53,19 +53,8 @@ export default function AdminNav() {
 
           {/* 右侧用户信息 */}
           <div className="flex items-center space-x-4">
-            <Link
-              href="/"
-              target="_blank"
-              className="text-blue-600 hover:hover-color text-sm font-medium"
-            >
-              查看网站
-            </Link>
-
             {session && (
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-color">
-                  欢迎，{session.user.name || session.user.username}
-                </span>
                 <button
                   onClick={handleSignOut}
                   className="text-sm text-red-600 hover:text-red-800 font-medium"
