@@ -3,22 +3,28 @@ import { authOptions } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import PostEditor from "@/components/PostEditor";
+import { Metadata } from "next";
 
-// 直接定义参数类型，无需继承PageProps
-type EditPostPageProps = {
-  params: {
-    id: string;
+// 假设从PostEditor导入Post类型，或者在这里定义
+import { Post } from "@/components/PostEditor"; // 调整实际导入路径
+
+// 定义动态路由参数类型
+interface EditPostParams {
+  id: string;
+}
+
+// 页面组件接收的props类型
+interface EditPostPageProps {
+  params: EditPostParams;
+  searchParams?: {
+    [key: string]: string | string[] | undefined;
   };
-};
+}
 
+// 服务器操作：更新文章
 async function updatePost(
   id: string,
-  data: {
-    title: string;
-    content: string;
-    excerpt: string;
-    published: boolean;
-  }
+  data: Omit<Post, "id"> // 使用与组件匹配的类型
 ) {
   "use server";
 
@@ -30,9 +36,23 @@ async function updatePost(
   redirect("/admin/posts");
 }
 
-// 确保函数参数类型正确
+// 生成页面元数据
+export async function generateMetadata({
+  params,
+}: EditPostPageProps): Promise<Metadata> {
+  const post = await prisma.post.findUnique({
+    where: { id: params.id },
+    select: { title: true },
+  });
+
+  return {
+    title: `编辑文章: ${post?.title || params.id}`,
+    description: `修改文章 "${post?.title || params.id}" 的内容`,
+  };
+}
+
+// 页面组件
 export default async function EditPostPage({ params }: EditPostPageProps) {
-  // 增加参数验证，增强代码健壮性
   if (!params || typeof params.id !== "string") {
     notFound();
   }
@@ -40,12 +60,10 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
   const { id } = params;
 
   const session = await getServerSession(authOptions);
-
   if (!session) {
     redirect("/admin/login");
   }
 
-  // 获取文章数据
   const post = await prisma.post.findUnique({
     where: { id },
     include: { author: true },
@@ -55,14 +73,10 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     notFound();
   }
 
-  const handleSave = async (postData: {
-    title: string;
-    content: string;
-    excerpt: string;
-    published: boolean;
-  }) => {
+  // 调整handleSave参数类型以匹配PostEditor的要求
+  const handleSave = async (postData: Omit<Post, "id">) => {
     "use server";
-    await updatePost(id, postData);
+    await updatePost(id, postData); // 这里使用路由中的id，而不是postData中的id
   };
 
   return (
@@ -81,7 +95,7 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
             excerpt: post.excerpt || "",
             published: post.published,
           }}
-          onSave={handleSave}
+          onSave={handleSave} // 现在类型匹配了
         />
       </div>
     </div>

@@ -11,7 +11,7 @@ const MDEditor = dynamic(
   { ssr: false }
 );
 
-interface Post {
+export interface Post {
   id?: string;
   title: string;
   content: string;
