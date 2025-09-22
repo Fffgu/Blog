@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env.local
 
 # vercel
 .vercel
@@ -40,4 +41,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
+# Prisma - generated client (CRITICAL: add this line!)
+.prisma/
+node_modules/.prisma/
+
+# ⚠️ 删除这一行！它不是标准路径，可能误导你
+# /src/generated/prisma
