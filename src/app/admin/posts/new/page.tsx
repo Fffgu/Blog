@@ -4,13 +4,14 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import PostEditor from "@/components/PostEditor";
 
-async function createPost(data: {
-  title: string;
-  content: string;
-  excerpt: string;
-  published: boolean;
-  authorId: string;
-}) {
+// ✅ 导入 Post 类型（来自组件）
+import { Post } from "@/components/PostEditor";
+
+// ✅ 定义创建文章所需的完整输入类型
+type CreatePostInput = Omit<Post, "id"> & { authorId: string };
+
+// ✅ 创建文章的服务器动作
+async function createPost(data: CreatePostInput) {
   "use server";
 
   const post = await prisma.post.create({
@@ -27,17 +28,13 @@ export default async function NewPostPage() {
     redirect("/admin/login");
   }
 
-  const handleSave = async (postData: {
-    title: string;
-    content: string;
-    excerpt: string;
-    published: boolean;
-  }) => {
+  // ✅ 保持与 PostEditor 的 onSave 类型完全一致
+  const handleSave = async (postData: Omit<Post, "id">) => {
     "use server";
 
     await createPost({
       ...postData,
-      authorId: session.user.id,
+      authorId: session.user.id, // ✅ 手动注入作者 ID
     });
   };
 

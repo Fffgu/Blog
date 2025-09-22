@@ -3,21 +3,21 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 
-// 定义页面参数类型
-interface PostPageProps {
-  params: {
-    id: string;
-  };
-}
+// ✅ 删除自定义接口 PostPageProps
+// ✅ 直接在函数参数中声明：params 是 Promise<{ id: string }>
 
-export default async function PostPage({ params }: PostPageProps) {
-  // 先await params再使用其属性
+export default async function PostPage({
+  params,
+}: {
+  params: Promise<{ id: string }>; // ✅ 关键修复：必须是 Promise
+}) {
+  // ✅ 正确：await 解构 params
   const { id } = await params;
 
   // 从数据库获取文章数据
   const post = await prisma.post.findUnique({
     where: {
-      id: id,
+      id,
     },
     include: {
       author: true,

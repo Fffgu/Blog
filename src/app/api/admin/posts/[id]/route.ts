@@ -5,11 +5,10 @@ import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ 修复：params 是 Promise
 ) {
   try {
-    // 关键修复：等待 params 解析
-    const { id } = await params;
+    const { id } = await params; // ✅ 正确：await 解构
 
     const session = await getServerSession(authOptions);
 
@@ -30,11 +29,11 @@ export async function PATCH(
 
     // 更新文章（使用解析后的 id）
     const updatedPost = await prisma.post.update({
-      where: { id: id },
+      where: { id },
       data: {
         title,
         content,
-        excerpt,
+        excerpt: excerpt || undefined, // ✅ 建议：null 时设为 undefined，避免写入空字符串
         published,
       },
     });
@@ -48,11 +47,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ 修复：params 是 Promise
 ) {
   try {
-    // 关键修复：等待 params 解析
-    const { id } = await params;
+    const { id } = await params; // ✅ 正确：await 解构
 
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -61,16 +59,16 @@ export async function DELETE(
 
     // 检查文章是否存在
     const post = await prisma.post.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!post) {
       return NextResponse.json({ error: "文章未找到" }, { status: 404 });
     }
 
-    // 删除文章（使用解析后的 id）
+    // 删除文章
     await prisma.post.delete({
-      where: { id: id },
+      where: { id },
     });
 
     return NextResponse.json({ message: "文章删除成功" }, { status: 200 });

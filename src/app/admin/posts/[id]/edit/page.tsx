@@ -5,59 +5,24 @@ import { prisma } from "@/lib/prisma";
 import PostEditor from "@/components/PostEditor";
 import { Metadata } from "next";
 
-// 假设从PostEditor导入Post类型，或者在这里定义
-import { Post } from "@/components/PostEditor"; // 调整实际导入路径
+// 假设从PostEditor导入Post类型
+import { Post } from "@/components/PostEditor";
 
-// 定义动态路由参数类型
-interface EditPostParams {
-  id: string;
-}
-
-// 页面组件接收的props类型
-interface EditPostPageProps {
-  params: EditPostParams;
-  searchParams?: {
-    [key: string]: string | string[] | undefined;
-  };
-}
-
-// 服务器操作：更新文章
-async function updatePost(
-  id: string,
-  data: Omit<Post, "id"> // 使用与组件匹配的类型
-) {
-  "use server";
-
-  await prisma.post.update({
-    where: { id },
-    data,
-  });
-
-  redirect("/admin/posts");
-}
-
-// 生成页面元数据
-export async function generateMetadata({
+// ✅ 删除自定义的 EditPostPageProps，改用官方类型
+// Next.js 15 中，params 和 searchParams 都是 Promise
+export default async function EditPostPage({
   params,
-}: EditPostPageProps): Promise<Metadata> {
-  const post = await prisma.post.findUnique({
-    where: { id: params.id },
-    select: { title: true },
-  });
-
-  return {
-    title: `编辑文章: ${post?.title || params.id}`,
-    description: `修改文章 "${post?.title || params.id}" 的内容`,
-  };
-}
-
-// 页面组件
-export default async function EditPostPage({ params }: EditPostPageProps) {
-  if (!params || typeof params.id !== "string") {
+}: {
+  params: Promise<{ id: string }>; // ✅ 关键：必须是 Promise
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  // ✅ 用 await 解构 params
+  const resolvedParams = await params;
+  if (!resolvedParams || typeof resolvedParams.id !== "string") {
     notFound();
   }
 
-  const { id } = params;
+  const { id } = resolvedParams;
 
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -73,10 +38,13 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     notFound();
   }
 
-  // 调整handleSave参数类型以匹配PostEditor的要求
   const handleSave = async (postData: Omit<Post, "id">) => {
     "use server";
-    await updatePost(id, postData); // 这里使用路由中的id，而不是postData中的id
+    await prisma.post.update({
+      where: { id },
+      data: postData,
+    });
+    redirect("/admin/posts");
   };
 
   return (
@@ -95,9 +63,26 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
             excerpt: post.excerpt || "",
             published: post.published,
           }}
-          onSave={handleSave} // 现在类型匹配了
+          onSave={handleSave}
         />
       </div>
     </div>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const post = await prisma.post.findUnique({
+    where: { id: resolvedParams.id },
+    select: { title: true },
+  });
+
+  return {
+    title: `编辑文章: ${post?.title || resolvedParams.id}`,
+    description: `修改文章 "${post?.title || resolvedParams.id}" 的内容`,
+  };
 }
